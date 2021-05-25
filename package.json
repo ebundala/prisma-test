@@ -1,0 +1,11 @@
+{
+  "name": "prisma-test",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "ebundala",
+  "license": "MIT",
+  "dependencies": {
+    "@prisma/client": "^2.23.0",
+    "prisma": "^2.23.0"
+  }
+}

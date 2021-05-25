@@ -1,0 +1,194 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+ // shadowDatabaseUrl = env("DATABASE_SHADOW_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+ 
+}
+
+enum Role {
+  ANONYMOUS
+  CONSUMER
+  PROVIDER
+  MANAGER
+  SUPERUSER
+}
+
+enum State {
+  PENDING
+  REVIEW
+  REJECTED
+  APPROVED
+  COMPLETED
+  ARCHIVED
+}
+enum Gender {
+ MALE
+ FEMALE
+ UNSPECIFIED
+}
+enum AttachmentType {
+  AUDIO
+  VIDEO
+  DOCUMENT
+  IMAGE
+}
+
+//casbin table
+
+model CasbinRule {
+  id        Int      @id @default(autoincrement())
+  ptype     String
+  v0        String?
+  v1        String?
+  v2        String?
+  v3        String?
+  v4        String?
+  v5        String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("casbin_rule")
+}
+
+model User {
+  id             String         @id @default(cuid())
+  email          String         @unique
+  displayName    String
+  phoneNumber    String?
+  dateOfBirth    DateTime?
+  gender         Gender         @default(UNSPECIFIED)
+  emailVerified  Boolean        @default(false)
+  disabled       Boolean        @default(false)
+  avator         Attachment?    @relation(fields: [avatorId], references: [id])
+  role           Role           @default(ANONYMOUS)
+  state          State          @default(PENDING)
+  orders         Order[]
+  ratings        Rating[]
+  location       Location?      @relation(fields: [locationId], references: [id])
+  organizations  Organization[] @relation("ownedBy")
+  staffOf        Organization[] @relation("staffOf")
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  avatorId       String?        @ignore
+  organizationId String?        
+  locationId     String?        @ignore
+
+}
+
+model Attachment {
+  id             String         @id @default(cuid())
+  path           String
+  filename       String?
+  mimetype       String?
+  encoding       String?
+  duration       Int            @default(0)
+  size           Int            @default(0)
+  attachmentType AttachmentType @default(IMAGE)
+  downloadable   Boolean        @default(false)
+  placement      String         @default("default")
+  users          User[]         @ignore
+  services       Service[]      @ignore
+  organizations  Organization[]  @ignore
+  orders         Order[]         @ignore
+  serviceCategory ServiceCategory?    @ignore
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+}
+
+model Organization {
+  id          String            @id @default(cuid())
+  name        String
+  description String?
+  logo        Attachment        @relation(fields: [logoId], references: [id])
+  services    Service[]
+  orders      Order[]
+  staffs      User[]            @relation("staffOf")
+  location    Location         @relation(fields: [locationId], references: [id])
+  offers      ServiceCategory[]
+  ratings     Rating[]
+  owner       User              @relation("ownedBy", fields: [ownerId], references: [id])
+  state       State           @default(PENDING)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  logoId      String            @ignore
+  locationId  String            @ignore
+  ownerId     String            @ignore
+}
+
+model Service {
+  id                String          @id @default(cuid())
+  name              String
+  description       String?
+  price             Float
+  state             State           @default(PENDING)
+  organization      Organization    @relation(fields: [organizationId], references: [id])
+  image             Attachment      @relation(fields: [imageId], references: [id])
+  category          ServiceCategory @relation(fields: [serviceCategoryId], references: [id])
+  orders            Order[]
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  organizationId    String          @ignore
+  imageId           String          @ignore
+  serviceCategoryId String          @ignore
+}
+
+model Order {
+  id             String       @id @default(cuid())
+  quantity       Int
+  service        Service      @relation(fields: [serviceId], references: [id])
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  owner          User         @relation(fields: [ownerId], references: [id])
+  state          State        @default(PENDING)
+  receipt        Attachment?  @relation(fields: [receiptId], references: [id])
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  serviceId      String       @ignore
+  organizationId String       @ignore
+  ownerId        String       @ignore
+  receiptId      String?      @ignore
+  
+}
+
+model ServiceCategory {
+  id            String         @id @default(cuid())
+  name          String
+  image         Attachment     @relation(fields: [imageId],references:[id])
+  state         State          @default(PENDING)
+  organizations Organization[]
+  services      Service[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  imageId       String         @ignore
+}
+
+model Rating {
+  id             String       @id @default(cuid())
+  value          Int
+  comment        String?
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  owner          User         @relation(fields: [ownerId], references: [id])
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  ownerId        String       @ignore
+  organizationId String       @ignore
+}
+
+model Location {
+  id            String                @id @default(cuid())
+  name          String                @default("unknown")
+  geom        Unsupported("GEOGRAPHY(POINT,4326)")?
+  lat           Float
+  lon           Float
+  createdAt     DateTime              @default(now())
+  updatedAt     DateTime              @updatedAt
+  organizations Organization[]     
+  users         User[]                
+}
