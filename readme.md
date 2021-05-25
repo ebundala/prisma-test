@@ -1,5 +1,5 @@
 ## Info
-I have encoutered an unexpected behavior using prisma generate whereby the generated client doesn`t include create method for some models.
+I get an unexpected behavior using prisma generate whereby the generated client doesn`t include create method for some models.
 included is the exactly schema i have used 
 i dont know if the problem is the schema or it might be a regression bug as the same schema was working prior to prisma 2.20.0 .
 i have tested on 2.20.1 and 2.23.0 with same result. i havent tested on older versions prior to 2.20.1 
