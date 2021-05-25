@@ -5,15 +5,25 @@ i dont know if the problem is the schema or it might be a regression bug as the 
 i have tested on 2.20.1 and 2.23.0 with same result. i havent tested on older versions prior to 2.20.1 
 
 ## Reproduction steps
-### 1. generate client first by running 
-  ```yarn run prisma generate```
+### 1. clone the repository 
+```
+git clone https://github.com/ebundala/prisma-test.git
+```
+### 2. install dependencies 
+ ```sh
+   yarn install
+  ```
+### 3. generate client
+  ```sh 
+  yarn run prisma generate
+  ```
 
 ### 2. inspect the generated client 
-  it miss create method on some models  
-   ``` Order, ServiceCategory and Service ```
+  it miss 'create' method on some models  
+   `` Order, ServiceCategory and Service ``
 
    example code
-   ```
+   ```javascript
    import { PrismaClient } from '@prisma/client'
 
 
